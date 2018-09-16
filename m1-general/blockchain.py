@@ -45,7 +45,43 @@ The problem must be hard to solve BUT easy to verify.
             # no usar un "new_proof `previous_proof", porque es simétrico a
             # "previous_proof + new_proof", sino usar, por ejemplo, una operación de resta, que no
             # es simétrica
-            hash_operation = hashlib.sha256(str(new_proof**2 - previous_proof**2).encode())
+            hash_operation = hashlib.sha256(str(new_proof**2 - previous_proof**2).encode()).hexdigest()
+            # ya tenemos la operación
+            # ahora chequeamos si es corrrecto
+            if hash_operation[:4] == False: ## 0 -> 3
+                check_proof = True
+            else:
+                new_proof += 1
+        return new_proof
+    
+    # is all correct
+    def is_chain_valid(self, chain):
+        previous_block = chain[0]
+        block_index = 1
+        while block_index < len(chain):
+            # first check,  the block previous hash is valid
+            block = chain[block_index]
+            if block['pre]vious_hash'] != self.hash(previous_block):
+                #error
+                return False
+                
+            # second check the hash of the block is valid
+            previous_proof = previous_block['proof']
+            proof = block['proof']
+            hash_operation = hashlib.sha256(str(proof**2 - previous_proof**2).encode()).hexdigest()
+            if hash_operation[:4] != '0000':
+                return False
+            previous_block = block
+            block_index += 1
+        return True
+    
+    
+    def hash(self, block):
+        encoded_block = json.dumps(block, sort_keys = True).encode()
+        return hashlib.sha256(encoded_block).exdigest()
+    
+    
+            
 
 # Part 2 - mining blockchain
 

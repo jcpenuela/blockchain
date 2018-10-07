@@ -2,7 +2,7 @@
 """
 Created on Sun Sep 16 08:04:56 2018
 
-@author: pr375
+@author: juancarlos.penuela@gmail.com
 """
 import datetime
 import hashlib
@@ -28,13 +28,14 @@ class Blockchain:
     def get_previous_block(self):
         return self.chain[-1]
         
-'''
-proof of work: numbers of piece of data tha the miners have to find in order to mine a new block
-we have to define a problem, and the minres will need to solve the problem, anf to solve this problem, 
-they have to find a espific number that will be exactly that proof of work.
-The problem must be hard to solve BUT easy to verify.
+    '''
+    proof of work: numbers of piece of data tha the miners have to find in order to mine a new block
+    we have to define a problem, and the minres will need to solve the problem, anf to solve this problem, 
+    they have to find a espific number that will be exactly that proof of work.
+    The problem must be hard to solve BUT easy to verify.
+    
+    '''        
 
-'''        
     def proof_of_work(self, previous_proof):
         new_proof = 1
         check_proof = False
@@ -48,7 +49,7 @@ The problem must be hard to solve BUT easy to verify.
             hash_operation = hashlib.sha256(str(new_proof**2 - previous_proof**2).encode()).hexdigest()
             # ya tenemos la operación
             # ahora chequeamos si es corrrecto
-            if hash_operation[:4] == False: ## 0 -> 3
+            if hash_operation[:4] == '0000': #False: ## 0 -> 3
                 check_proof = True
             else:
                 new_proof += 1
@@ -61,7 +62,7 @@ The problem must be hard to solve BUT easy to verify.
         while block_index < len(chain):
             # first check,  the block previous hash is valid
             block = chain[block_index]
-            if block['pre]vious_hash'] != self.hash(previous_block):
+            if block['previous_hash'] != self.hash(previous_block):
                 #error
                 return False
                 
@@ -78,10 +79,70 @@ The problem must be hard to solve BUT easy to verify.
     
     def hash(self, block):
         encoded_block = json.dumps(block, sort_keys = True).encode()
-        return hashlib.sha256(encoded_block).exdigest()
+        return hashlib.sha256(encoded_block).hexdigest()
+        
+
+            
     
     
             
 
 # Part 2 - mining blockchain
+
+
+
+# Creating a web app
+
+app = Flask(__name__)
+
+# Creating a blockchain
+
+blockchain = Blockchain()
+
+@app.route('/', methods=["GET"])
+def home_page():
+    response = {
+        'methods': {
+            'mine_block': 'Mine a new block',
+            'get_chain': 'Get the whole blockchain'
+        }
+    }
+    return jsonify(response), 200
+
+# mining a new block
+
+@app.route('/mine_block', methods=["GET"])
+def mine_block():
+    previous_block = blockchain.get_previous_block()
+    previous_proof = previous_block["proof"]
+    proof = blockchain.proof_of_work(previous_proof)
+    previous_hash = blockchain.hash(previous_block)
+    block = blockchain.create_block(proof, previous_hash)
+    response = {
+        'message':'You just mined a block!',
+        'index': block['index'],
+        'timestamp': block['timestamp'],
+        'proof': block['proof'],
+        'previous_hash': block['previous_hash']
+    }
+    return jsonify(response), 200
+    
+# getting the full blockchain
+@app.route('/get_chain', methods=["GET"])
+def get_chain():
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
+    }
+    return jsonify(response), 200
+    
+# running the app
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8080)
+    # app.run(host='0.0.0.0', port=443, ssl_context='adhoc')
+
+     
+
+
 
